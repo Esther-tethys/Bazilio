@@ -1,5 +1,5 @@
 import numpy as np
-import sounddevice as sd
+#import sounddevice as sd
 import sys
 import os
 from flask import Flask, request, jsonify
