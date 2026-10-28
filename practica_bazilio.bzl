@@ -1,0 +1,2 @@
+# Archivo generado de practica Bazilio
+| Re4:1.5 Do4:0.5 Do4:2 | Sol#3 La#3 Mi4 Fa4 C4 D4 E4 C4 B3 A3
