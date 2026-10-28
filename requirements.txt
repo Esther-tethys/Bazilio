@@ -1,3 +1,5 @@
-antlr4-python3-runtime==4.13.1
-flask==3.0.2
-gunicorn==21.2.0
+flask
+gunicorn
+antlr4-python3-runtime
+numpy
+sounddevice
