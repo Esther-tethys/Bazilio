@@ -1,5 +1,3 @@
-import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
 import numpy as np
 import sounddevice as sd
 import sys
