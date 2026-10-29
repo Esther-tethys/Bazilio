@@ -56,7 +56,7 @@ def validar_y_convertir_notas(texto):
         key = ingles_nota
         
         if not any(char.isdigit() for char in key):
-            key = key + '6'
+            key = key + '3'
 
         if key in NOTE_FREQUENCIES:
             # Sin el multiplicador extra, toma directamente la frecuencia natural de la octava
