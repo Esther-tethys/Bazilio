@@ -59,9 +59,9 @@ def validar_y_convertir_notas(texto):
             key = key + '5'
 
         if key in NOTE_FREQUENCIES:
+            # Sin el multiplicador extra, toma directamente la frecuencia natural de la octava
             freq_base = NOTE_FREQUENCIES[key]
-            freq_aguda = freq_base * 2.0 
-            frecuencias.append((freq_aguda, mult))
+            frecuencias.append((freq_base, mult))
         else:
             invalidas.append(raw_nota)
 
@@ -74,7 +74,7 @@ def validar_y_convertir_notas(texto):
 def generar_onda_nota(frecuencia, duracion=0.4, sample_rate=44100):
     t = np.linspace(0, duracion, int(sample_rate * duracion), False)
     
-    # 🔺 CAMBIO CLAVE: Onda triangular (suave, cálida y limpia)
+    # Onda triangular limpia y suave
     phase = (t * frecuencia) % 1.0
     onda = 0.4 * (2 * np.abs(2 * phase - 1) - 1)
     
