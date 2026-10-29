@@ -74,9 +74,9 @@ def validar_y_convertir_notas(texto):
 def generar_onda_nota(frecuencia, duracion=0.4, sample_rate=44100):
     t = np.linspace(0, duracion, int(sample_rate * duracion), False)
     
-    # 🎹 CAMBIO CLAVE: Usamos una onda cuadrada (square wave) para darle 
-    # el timbre electrónico, rico y característico de un sintetizador/beethoven.mp3
-    onda = 0.25 * np.sign(np.sin(2 * np.pi * frecuencia * t))
+    # 🔺 CAMBIO CLAVE: Onda triangular (suave, cálida y limpia)
+    phase = (t * frecuencia) % 1.0
+    onda = 0.4 * (2 * np.abs(2 * phase - 1) - 1)
     
     num_muestras = len(onda)
     ataque = int(sample_rate * 0.02)
