@@ -13,7 +13,7 @@ from BazilioParser import BazilioParser
 
 app = Flask(__name__)
 
-# Diccionario completo de frecuencias base
+# Diccionario completo de frecuencias base (incluyendo octavas altas)
 NOTE_FREQUENCIES = {
     'C3': 130.81, 'C#3': 138.59, 'D3': 146.83, 'D#3': 155.56,
     'E3': 164.81, 'F3': 174.61, 'F#3': 185.00, 'G3': 196.00,
@@ -21,8 +21,11 @@ NOTE_FREQUENCIES = {
     'C4': 261.63, 'C#4': 277.18, 'D4': 293.66, 'D#4': 311.13,
     'E4': 329.63, 'F4': 349.23, 'F#4': 369.99, 'G4': 392.00,
     'G#4': 415.30, 'A4': 440.00, 'A#4': 466.16, 'B4': 493.88,
-    'C5': 523.25, 'C#5': 554.37, 'D5': 587.33, 'E5': 659.25, 'F5': 698.46,
-    'G5': 783.99, 'A5': 880.00, 'B5': 987.77
+    'C5': 523.25, 'C#5': 554.37, 'D5': 587.33, 'D#5': 622.25,
+    'E5': 659.25, 'F5': 698.46, 'F#5': 739.99, 'G5': 783.99,
+    'G#5': 830.61, 'A5': 880.00, 'A#5': 932.33, 'B5': 987.77,
+    'C6': 1046.50, 'D6': 1174.66, 'E6': 1318.51, 'F6': 1396.91,
+    'G6': 1567.98, 'A6': 1760.00, 'B6': 1975.53
 }
 
 def traducir_solfeo_a_ingles(token):
@@ -50,8 +53,10 @@ def validar_y_convertir_notas(texto):
 
         ingles_nota = traducir_solfeo_a_ingles(raw_nota)
         key = ingles_nota
+        
+        # CAMBIO: Si no lleva octava explícita, por defecto ahora usa la octava 5 (más aguda)
         if not any(char.isdigit() for char in key):
-            key = key + '4'
+            key = key + '5'
 
         if key in NOTE_FREQUENCIES:
             frecuencias.append((NOTE_FREQUENCIES[key], mult))
