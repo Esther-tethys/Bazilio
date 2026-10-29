@@ -104,6 +104,32 @@ def audio_buffer_a_wav_bytes(notes, sample_rate=44100):
     buffer.seek(0)
     return buffer
 
+def generar_pdf_partitura(notes):
+    buffer = io.BytesIO()
+    try:
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots(figsize=(8, 2))
+        ax.axis('off')
+        
+        for i in range(5):
+            ax.axhline(i * 0.2, color='black', lw=1)
+            
+        ax.text(0.05, 0.8, "♩ = 120", fontsize=12, fontweight='bold')
+        ax.text(0.15, 0.4, "🎼 C", fontsize=16)
+        
+        for idx, (freq, mult) in enumerate(notes):
+            x = 0.3 + (idx * 0.05)
+            y = 0.4 + ((idx % 5) * 0.05)
+            ax.plot(x, y, 'ko', markersize=6)
+            
+        plt.savefig(buffer, format='pdf', bbox_inches='tight', dpi=200)
+        plt.close(fig)
+    except Exception:
+        buffer.write(b"Reporte de Partitura - Bazilio\nNotas procesadas:\n" + str(notes).encode('utf-8'))
+        
+    buffer.seek(0)
+    return buffer
+
 @app.route('/')
 def home():
     return '''
@@ -112,29 +138,39 @@ def home():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Bazilio ANTLR4 Parser y Audio</title>
+        <title>Bazilio ANTLR4 Parser y Archivos</title>
         <style>
             body { font-family: sans-serif; background-color: #1a1625; color: #e0d7f5; padding: 20px; max-width: 800px; margin: auto; }
             h2 { color: #c084fc; }
             textarea { width: 100%; height: 130px; background: #2a2438; color: #fff; border: 1px solid #7e22ce; border-radius: 8px; padding: 10px; font-family: monospace; box-sizing: border-box; }
-            button { background-color: #9333ea; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-top: 10px; margin-right: 5px; font-weight: bold; }
+            button { background-color: #9333ea; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; margin-top: 10px; margin-right: 5px; font-weight: bold; font-size: 13px; }
             button:hover { background-color: #a855f7; }
             .btn-audio { background-color: #059669; }
             .btn-audio:hover { background-color: #10b981; }
+            .btn-pdf { background-color: #dc2626; }
+            .btn-pdf:hover { background-color: #ef4444; }
+            .btn-bzl { background-color: #d97706; }
+            .btn-bzl:hover { background-color: #f59e0b; }
             pre { background: #0f0d15; padding: 15px; border-radius: 8px; color: #a7f3d0; overflow-x: auto; }
             audio { margin-top: 10px; width: 100%; }
+            .seccion-botones { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
         </style>
     </head>
     <body>
         <h2>Intérprete y Generador Musical Bazilio</h2>
         <p>Escribe o pega tus notas musicales a continuación:</p>
         <textarea id="textoNotas">| Re4:1.5 Do4:0.5 Do4:2 | Sol#3 La#3 Mi4 Fa4</textarea><br>
-        <button onclick="analizar()">Analizar Notas (ANTLR4)</button>
-        <button class="btn-audio" onclick="generarAudio()">🔊 Reproducir / Descargar Audio</button>
+        
+        <div class="seccion-botones">
+            <button onclick="analizar()">🔍 Analizar Notas (ANTLR4)</button>
+            <button class="btn-audio" onclick="generarAudio()">🔊 Reproducir / WAV</button>
+            <button class="btn-pdf" onclick="descargarPDF()">📥 Descargar PDF</button>
+            <button class="btn-bzl" onclick="descargarBZL()">📥 Descargar .BZL</button>
+        </div>
         
         <div id="contenedorAudio" style="display:none; margin-top: 15px;">
             <audio id="reproductorAudio" controls></audio><br>
-            <a id="enlaceDescarga" download="audio_bazilio.wav"><button style="background-color:#4f46e5;">📥 Descargar archivo .WAV</button></a>
+            <a id="enlaceDescargaWav" download="audio_bazilio.wav"><button style="background-color:#4f46e5; margin-top:5px;">📥 Descargar archivo .WAV</button></a>
         </div>
 
         <h3>Resultado del Análisis:</h3>
@@ -176,13 +212,65 @@ def home():
                     const audio = document.getElementById('reproductorAudio');
                     audio.src = url;
                     
-                    const enlace = document.getElementById('enlaceDescarga');
+                    const enlace = document.getElementById('enlaceDescargaWav');
                     enlace.href = url;
 
                     document.getElementById('contenedorAudio').style.display = 'block';
                     audio.play();
                 } catch (err) {
                     alert("Ocurrió un error al generar el audio.");
+                }
+            }
+
+            async function descargarPDF() {
+                const notas = document.getElementById('textoNotas').value;
+                try {
+                    const res = await fetch('/generar_pdf', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ notas })
+                    });
+                    if (!res.ok) {
+                        const err = await res.json();
+                        alert("Error: " + err.error);
+                        return;
+                    }
+                    const blob = await res.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'Partitura.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                } catch (err) {
+                    alert("Error al descargar el PDF.");
+                }
+            }
+
+            async function descargarBZL() {
+                const notas = document.getElementById('textoNotas').value;
+                try {
+                    const res = await fetch('/generar_bzl', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ notas })
+                    });
+                    if (!res.ok) {
+                        const err = await res.json();
+                        alert("Error: " + err.error);
+                        return;
+                    }
+                    const blob = await res.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'notas.bzl';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                } catch (err) {
+                    alert("Error al descargar el archivo .bzl.");
                 }
             }
         </script>
@@ -229,6 +317,36 @@ def generar_audio_endpoint():
     try:
         wav_buffer = audio_buffer_a_wav_bytes(frecuencias)
         return send_file(wav_buffer, mimetype='audio/wav', as_attachment=True, download_name='bazilio_audio.wav')
+    except Exception as e:
+        return jsonify({"exito": False, "error": str(e)}), 500
+
+@app.route('/generar_pdf', methods=['POST'])
+def generar_pdf_endpoint():
+    datos = request.get_json() or {}
+    texto_notas = datos.get('notas', '')
+
+    frecuencias, error = validar_y_convertir_notas(texto_notas)
+    if error:
+        return jsonify({"exito": False, "error": error}), 400
+
+    try:
+        pdf_buffer = generar_pdf_partitura(frecuencias)
+        return send_file(pdf_buffer, mimetype='application/pdf', as_attachment=True, download_name='Partitura.pdf')
+    except Exception as e:
+        return jsonify({"exito": False, "error": str(e)}), 500
+
+@app.route('/generar_bzl', methods=['POST'])
+def generar_bzl_endpoint():
+    datos = request.get_json() or {}
+    texto_notas = datos.get('notas', '')
+
+    if not texto_notas.strip():
+        return jsonify({"exito": False, "error": "El texto está vacío."}), 400
+
+    try:
+        contenido = f"# Archivo Bazilio (.bzl)\n# Notas Musicales\n\n{texto_notas}"
+        bzl_buffer = io.BytesIO(contenido.encode('utf-8'))
+        return send_file(bzl_buffer, mimetype='text/plain', as_attachment=True, download_name='notas.bzl')
     except Exception as e:
         return jsonify({"exito": False, "error": str(e)}), 500
 
