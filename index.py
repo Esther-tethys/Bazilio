@@ -56,15 +56,11 @@ def validar_y_convertir_notas(texto):
         key = ingles_nota
         
         if not any(char.isdigit() for char in key):
-            key = key + '5' # Octava base más aguda
+            key = key + '5'
 
         if key in NOTE_FREQUENCIES:
             freq_base = NOTE_FREQUENCIES[key]
-            
-            # 🎵 MULTIPLICADOR DE TONO: Subimos las frecuencias al doble (una octava extra más aguda)
-            # Si quieres que suenen aún más agudas, puedes cambiar 2.0 por 3.0 o 4.0
             freq_aguda = freq_base * 2.0 
-            
             frecuencias.append((freq_aguda, mult))
         else:
             invalidas.append(raw_nota)
@@ -77,7 +73,10 @@ def validar_y_convertir_notas(texto):
 
 def generar_onda_nota(frecuencia, duracion=0.4, sample_rate=44100):
     t = np.linspace(0, duracion, int(sample_rate * duracion), False)
-    onda = 0.5 * np.sin(2 * np.pi * frecuencia * t)
+    
+    # 🎹 CAMBIO CLAVE: Usamos una onda cuadrada (square wave) para darle 
+    # el timbre electrónico, rico y característico de un sintetizador/beethoven.mp3
+    onda = 0.25 * np.sign(np.sin(2 * np.pi * frecuencia * t))
     
     num_muestras = len(onda)
     ataque = int(sample_rate * 0.02)
